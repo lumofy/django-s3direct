@@ -123,6 +123,9 @@ class S3DirectDescriptor(object):
             value["key"],
         )
 
+        if value["key"] == "@@NO_KEY@@":
+            file_url = value["url"]
+
         return {
             **value,
             "url": file_url,
