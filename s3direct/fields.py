@@ -4,6 +4,7 @@ import botocore
 import json
 from urllib.parse import unquote
 from email.message import EmailMessage
+import urllib.request
 
 from django import forms
 
@@ -125,6 +126,22 @@ class S3DirectDescriptor(object):
 
         if value["key"] == "@@NO_KEY@@":
             file_url = value["url"]
+        else:
+            # This tries with the normal S3 configuration (AWS or Oracle), then tries without Oracle (Always AWS)
+            # only a part of the content (we cannot use HEAD with presigned URLs)
+            try:
+                headers = {"Range": "bytes=0-100"}
+                req = urllib.request.Request(file_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=3) as response:
+                    response.getcode()
+            except urllib.error.URLError as e:
+                if hasattr(e, "code") and e.code == 404:
+                    file_url = get_presigned_url(
+                        self.field.dest,
+                        value["key"],
+                        is_oracle=False,
+                    )
+
 
         return {
             **value,
