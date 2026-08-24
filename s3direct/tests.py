@@ -6,14 +6,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.utils import override_settings
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-try:
-    from django.urls import resolve, reverse
-except ImportError:
-    from django.core.urlresolvers import resolve, reverse
+from unittest import mock
+from django.urls import resolve, reverse
 
 from s3direct import widgets
 from s3direct.utils import get_aws_credentials
@@ -32,21 +26,33 @@ class WidgetTestCase(TestCase):
 
     def test_widget_html(self):
         expected = (
-            '<div class="s3direct" data-policy-url="/get_upload_params/" '
-            'data-signing-url="/get_aws_v4_signature/">\n'
-            '  <a class="file-link" target="_blank" href=""></a>\n'
-            '  <a class="file-remove" href="#remove">Remove</a>\n'
-            '  <input class="csrf-cookie-name" type="hidden" '
-            'value="csrftoken">\n'
-            '  <input class="file-url" type="hidden" value="" id="" '
-            'name="filename" />\n'
-            '  <input class="file-dest" type="hidden" value="foo">\n'
-            '  <input class="file-input" type="file"  style=""/>\n'
-            '  <div class="progress progress-striped active">\n'
-            '    <div class="bar"></div>\n'
-            '    <a href="#cancel" class="cancel-button">&times;</a>\n'
-            '  </div>\n'
-            '</div>\n')
+            '<div class="s3direct"\n'
+            '     data-policy-url="/get_upload_params/"\n'
+            '     data-signing-url="/get_aws_v4_signature/">\n'
+            '    <a class="file-link"\n'
+            '       target="_blank"\n'
+            '       href=""></a>\n'
+            '    <a class="file-remove"\n'
+            '       href="#remove">Remove</a>\n'
+            '    <input class="csrf-cookie-name"\n'
+            '           type="hidden"\n'
+            '           value="csrftoken">\n'
+            '    <input class="file-url"\n'
+            '           type="hidden"\n'
+            '           value=""\n'
+            '           id=""\n'
+            '           name="filename" />\n'
+            '    <input class="file-dest"\n'
+            '           type="hidden"\n'
+            '           value="foo">\n'
+            '    <input class="file-input"\n'
+            '           type="file" />\n'
+            '    <div class="progress progress-striped active">\n'
+            '        <div class="bar"></div>\n'
+            '        <a href="#cancel"\n'
+            '           class="cancel-button">&times;</a>\n'
+            '    </div>\n'
+            '</div>')
 
         widget = widgets.S3DirectWidget(dest='foo')
         self.assertEqual(widget.render('filename', None), expected)

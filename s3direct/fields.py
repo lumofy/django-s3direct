@@ -1,4 +1,3 @@
-import cgi
 import boto3
 import botocore
 import json
@@ -19,6 +18,40 @@ from s3direct.utils import (
     get_s3direct_destinations,
     get_presigned_url,
 )
+
+
+def _parse_header_params(s):
+    while s[:1] == ";":
+        s = s[1:]
+        end = s.find(";")
+        while end > 0 and (s.count('"', 0, end) - s.count('\\"', 0, end)) % 2:
+            end = s.find(";", end + 1)
+        if end < 0:
+            end = len(s)
+        f = s[:end]
+        yield f.strip()
+        s = s[end:]
+
+
+def parse_header(line):
+    """Parse a Content-Type-like header, e.g. Content-Disposition.
+
+    Vendored replacement for the stdlib `cgi.parse_header`, removed in
+    Python 3.13. Returns the header's main value and a dict of params.
+    """
+    parts = _parse_header_params(";" + line)
+    key = next(parts)
+    pdict = {}
+    for p in parts:
+        i = p.find("=")
+        if i >= 0:
+            name = p[:i].strip().lower()
+            value = p[i + 1:].strip()
+            if len(value) >= 2 and value[0] == value[-1] == '"':
+                value = value[1:-1]
+                value = value.replace("\\\\", "\\").replace('\\"', '"')
+            pdict[name] = value
+    return key, pdict
 
 
 def validate_url(value, dest):
@@ -86,7 +119,7 @@ def validate_url(value, dest):
             )
 
             content_disposition = head_object["ContentDisposition"]
-            header_value, header_params = cgi.parse_header(content_disposition)
+            header_value, header_params = parse_header(content_disposition)
 
             msg = EmailMessage()
             msg["Content-Disposition"] = content_disposition

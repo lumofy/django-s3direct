@@ -8,10 +8,7 @@ from django.http import (
 )
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
-try:
-    from urllib.parse import unquote
-except ImportError:
-    from urlparse import unquote
+from urllib.parse import unquote
 from .utils import (
     get_aws_credentials, get_aws_v4_signature,
     get_aws_v4_signing_key, get_s3direct_destinations, get_key
